@@ -13,6 +13,9 @@
     <version>1.0.0</version>
     <name>icarus</name>
     <description>icarus</description>
+    <properties>
+        <java.version>11</java.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
