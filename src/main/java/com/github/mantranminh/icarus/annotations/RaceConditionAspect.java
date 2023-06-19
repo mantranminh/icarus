@@ -18,20 +18,13 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class RaceConditionAspect {
 
-    public static final String LOCK_PROCESSING_PREFIX = "lock:processing:";
+    public static final String LOCK_PROCESSING_PREFIX = "lock:processing";
     private final RedissonClient redissonClient;
 
     public RaceConditionAspect(RedissonClient redissonClient) {
         this.redissonClient = redissonClient;
     }
 
-    /**
-     * Handle race condition
-     *
-     * @param pjp
-     * @return
-     * @throws Throwable
-     */
     @Around("@annotation(RaceCondition)")
     public Object raceCondition(ProceedingJoinPoint pjp, RaceCondition RaceCondition) throws Throwable {
         Object rs;
