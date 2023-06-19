@@ -9,12 +9,9 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@Order(value = 2)
-public @interface Caching {
-    String prefix() default "";
-
+@Order(value = 1)
+public @interface Idempotency {
     long ttl() default 900000;
 
-    int argLimit() default 2;
-
+    int kIndex() default 0;
 }

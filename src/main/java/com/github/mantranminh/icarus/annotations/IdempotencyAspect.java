@@ -16,28 +16,30 @@ import java.util.concurrent.TimeUnit;
 @Aspect
 @Component
 @AllArgsConstructor
-public class CachingAspect {
+public class IdempotencyAspect {
+    public static final String IDEMPOTENCY_PREFIX = "idempotency";
     private final RedissonClient redissonClient;
 
-    @Around("@annotation(Caching)")
-    public Object caching(ProceedingJoinPoint pjp, Caching Caching) {
-        String cacheKey = CacheUtils.getParticularCacheKey(Caching.prefix(), pjp.getArgs(), Caching.argLimit());
+    @Around("@annotation(Idempotency)")
+    public Object idempotency(ProceedingJoinPoint pjp, Idempotency Idempotency) {
+        int idx = Idempotency.kIndex();
+        String cacheKey = CacheUtils.getParticularCacheKey(IDEMPOTENCY_PREFIX, String.valueOf(pjp.getArgs()[idx]));
         RBucket rBucket = redissonClient.getBucket(cacheKey);
         if (rBucket.isExists()) {
-            log.debug("caching#before : cache found {}", cacheKey);
+            log.debug("idempotency()#before : cache found {}", cacheKey);
             return rBucket.get();
         }
 
         try {
             Object rs = pjp.proceed();
             if (rs != null) {
-                rBucket.set(rs, Caching.ttl(), TimeUnit.MILLISECONDS);
-                log.debug("caching#after : got from API, then update cache {}", cacheKey);
+                rBucket.set(rs, Idempotency.ttl(), TimeUnit.MILLISECONDS);
+                log.debug("idempotency()#after : processed, update cache {}", cacheKey);
             }
             return rs;
         } catch (Throwable e) {
-            log.error("caching()#catch : general exception {}", cacheKey, e);
-            throw new RuntimeException();
+            log.debug("idempotency()#catch : general error {}", cacheKey, e);
+            throw new RuntimeException(e);
         }
     }
 }

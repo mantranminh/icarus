@@ -26,29 +26,27 @@ public class RaceConditionAspect {
     }
 
     @Around("@annotation(RaceCondition)")
-    public Object raceCondition(ProceedingJoinPoint pjp, RaceCondition RaceCondition) throws Throwable {
-        Object rs;
+    public Object raceCondition(ProceedingJoinPoint pjp, RaceCondition RaceCondition) {
         String cacheKey =
                 CacheUtils.getParticularCacheKey(LOCK_PROCESSING_PREFIX, pjp.getArgs(), RaceCondition.argLimit());
         RLock lock = redissonClient.getLock(cacheKey);
-        boolean isPutLockSuccessful = false;
+        boolean isLockSuccessful = false;
         try {
-            isPutLockSuccessful = lock.tryLock(
+            isLockSuccessful = lock.tryLock(
                     RaceCondition.waitTime(), RaceCondition.leaseTime(), TimeUnit.MILLISECONDS);
-            if (!isPutLockSuccessful) {
+            if (!isLockSuccessful) {
                 log.debug("RaceCondition#fail cannot acquire lock : {}", cacheKey);
                 throw new CannotAcquireLockException("Cannot acquire lock");
             }
-            rs = pjp.proceed();
-        } catch (Exception e) {
+            return pjp.proceed();
+        } catch (Throwable e) {
             log.error("RaceCondition#catch exception : {}", cacheKey, e);
-            throw e;
+            throw new RuntimeException();
         } finally {
-            if (isPutLockSuccessful) {
+            if (isLockSuccessful) {
                 lock.unlock();
             }
             log.debug("RaceCondition#finally : {}", cacheKey);
         }
-        return rs;
     }
 }
