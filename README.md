@@ -1,6 +1,9 @@
 # Icarus
 Provide some useful annotations
 
+## jitpack.yml
+For specifying the target JDK version, If not, Jitpack sets JDK1.8 as the default.
+
 ## Usage:
 1. Lookup {version_tag}
 2. Update POM.xml
