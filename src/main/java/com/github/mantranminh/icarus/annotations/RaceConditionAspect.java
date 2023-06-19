@@ -1,6 +1,7 @@
 package com.github.mantranminh.icarus.annotations;
 
 import com.github.mantranminh.icarus.utils.CacheUtils;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -16,14 +17,10 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Aspect
 @Component
+@AllArgsConstructor
 public class RaceConditionAspect {
-
     public static final String LOCK_PROCESSING_PREFIX = "lock:processing";
     private final RedissonClient redissonClient;
-
-    public RaceConditionAspect(RedissonClient redissonClient) {
-        this.redissonClient = redissonClient;
-    }
 
     @Around("@annotation(RaceCondition)")
     public Object raceCondition(ProceedingJoinPoint pjp, RaceCondition RaceCondition) {
