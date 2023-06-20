@@ -21,7 +21,7 @@ public class IdempotencyAspect {
     private final RedissonClient redissonClient;
 
     @Around("@annotation(Idempotency)")
-    public Object idempotency(ProceedingJoinPoint pjp, Idempotency Idempotency) {
+    public Object idempotency(ProceedingJoinPoint pjp, Idempotency Idempotency) throws Throwable {
         int idx = Idempotency.kIndex();
         String cacheKey = CacheUtils.getParticularCacheKey(IDEMPOTENCY_PREFIX, String.valueOf(pjp.getArgs()[idx]));
         RBucket rBucket = redissonClient.getBucket(cacheKey);
@@ -39,7 +39,7 @@ public class IdempotencyAspect {
             return rs;
         } catch (Throwable e) {
             log.debug("idempotency()#catch : general error {}", cacheKey, e);
-            throw new RuntimeException(e);
+            throw e;
         }
     }
 }

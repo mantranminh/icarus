@@ -20,7 +20,7 @@ public class CachingAspect {
     private final RedissonClient redissonClient;
 
     @Around("@annotation(Caching)")
-    public Object caching(ProceedingJoinPoint pjp, Caching Caching) {
+    public Object caching(ProceedingJoinPoint pjp, Caching Caching) throws Throwable {
         String cacheKey = CacheUtils.getParticularCacheKey(Caching.prefix(), pjp.getArgs(), Caching.argLimit());
         RBucket rBucket = redissonClient.getBucket(cacheKey);
         if (rBucket.isExists()) {
@@ -37,7 +37,7 @@ public class CachingAspect {
             return rs;
         } catch (Throwable e) {
             log.error("caching()#catch : general exception {}", cacheKey, e);
-            throw new RuntimeException();
+            throw e;
         }
     }
 }

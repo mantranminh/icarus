@@ -23,7 +23,7 @@ public class RaceConditionAspect {
     private final RedissonClient redissonClient;
 
     @Around("@annotation(RaceCondition)")
-    public Object raceCondition(ProceedingJoinPoint pjp, RaceCondition RaceCondition) {
+    public Object raceCondition(ProceedingJoinPoint pjp, RaceCondition RaceCondition) throws Throwable {
         String cacheKey =
                 CacheUtils.getParticularCacheKey(LOCK_PROCESSING_PREFIX, pjp.getArgs(), RaceCondition.argLimit());
         RLock lock = redissonClient.getLock(cacheKey);
@@ -38,7 +38,7 @@ public class RaceConditionAspect {
             return pjp.proceed();
         } catch (Throwable e) {
             log.error("RaceCondition#catch exception : {}", cacheKey, e);
-            throw new RuntimeException();
+            throw e;
         } finally {
             if (isLockSuccessful) {
                 lock.unlock();
